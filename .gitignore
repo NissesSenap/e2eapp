@@ -1,0 +1,7 @@
+# Idea
+.history/
+
+# Removing user db
+user.db
+
+vendor/
