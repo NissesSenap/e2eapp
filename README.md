@@ -20,6 +20,27 @@ The plan is that all of the services should be able to be tested with TLS since 
 
 Depending on time and prio I will also automate setup of the different services that I test with TLS to be able to easily test this.
 
+## Setup
+
+### Verify kafka
+
+./kafka-console-consumer.sh --bootstrap-server my-cluster-kafka-bootstrap-kafka.apps.ocp67.ajco.se:443 --from-beginning --topic my-topic --consumer.config client.properties
+
+```shell
+cat client.properties
+security.protocol=SSL
+ssl.truststore.location=kafka.server.truststore.jks
+ssl.truststore.password=XXX
+```
+
+### Create keystore
+
+keytool -import -trustcacerts -alias root -file ca.crt -keystore keystore.jks -storepass password -noprompt
+
+### Verify keystore
+
+keytool -list -v -keystore keystore.jks
+
 ## What it isn't
 
 This is not a application for production! It's only to perfrom a simple e2e test och a backend service.
