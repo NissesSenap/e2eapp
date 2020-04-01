@@ -1,6 +1,8 @@
 package main
 
 import (
+	"io/ioutil"
+
 	"github.com/Shopify/sarama"
 
 	"crypto/tls"
@@ -8,7 +10,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -55,25 +56,41 @@ func main() {
 }
 
 func createTlsConfiguration() (t *tls.Config) {
-	if *certFile != "" && *keyFile != "" && *caFile != "" {
-		cert, err := tls.LoadX509KeyPair(*certFile, *keyFile)
-		if err != nil {
-			log.Fatal(err)
-		}
+	/*
+		if *certFile != "" && *keyFile != "" && *caFile != "" {
+			cert, err := tls.LoadX509KeyPair(*certFile, *keyFile)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		caCert, err := ioutil.ReadFile(*caFile)
-		if err != nil {
-			log.Fatal(err)
-		}
+			caCert, err := ioutil.ReadFile(*caFile)
+			if err != nil {
+				log.Fatal(err)
+			}
 
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
+			caCertPool := x509.NewCertPool()
+			caCertPool.AppendCertsFromPEM(caCert)
 
-		t = &tls.Config{
-			Certificates:       []tls.Certificate{cert},
-			RootCAs:            caCertPool,
-			InsecureSkipVerify: *verifySsl,
+			t = &tls.Config{
+				Certificates:       []tls.Certificate{cert},
+				RootCAs:            caCertPool,
+				InsecureSkipVerify: *verifySsl,
+			}
 		}
+	*/
+	fmt.Println("I'm outside of the caFile check")
+	fmt.Println(*caFile)
+	caCert, err := ioutil.ReadFile(*caFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	t = &tls.Config{
+		RootCAs:            caCertPool,
+		InsecureSkipVerify: *verifySsl,
 	}
 	// will be nil by default if nothing is provided
 	return t
@@ -197,6 +214,7 @@ func newDataCollector(brokerList []string) sarama.SyncProducer {
 	config.Producer.RequiredAcks = sarama.WaitForAll // Wait for all in-sync replicas to ack the message
 	config.Producer.Retry.Max = 10                   // Retry up to 10 times to produce the message
 	config.Producer.Return.Successes = true
+	fmt.Println("Before i call TlsConfig from brokerList")
 	tlsConfig := createTlsConfiguration()
 	if tlsConfig != nil {
 		config.Net.TLS.Config = tlsConfig
@@ -221,6 +239,7 @@ func newAccessLogProducer(brokerList []string) sarama.AsyncProducer {
 	// For the access log, we are looking for AP semantics, with high throughput.
 	// By creating batches of compressed messages, we reduce network I/O at a cost of more latency.
 	config := sarama.NewConfig()
+	fmt.Println("Before I'm calling the TLSConfig from newAccessLogPorducer")
 	tlsConfig := createTlsConfiguration()
 	if tlsConfig != nil {
 		config.Net.TLS.Enable = true
