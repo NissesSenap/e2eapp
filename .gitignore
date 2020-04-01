@@ -1,7 +1,9 @@
 # Idea
 .history/
+.vscode/
 
-# Removing user db
-user.db
-
+# go stuff
 vendor/
+
+# privat certs
+ca.crt
